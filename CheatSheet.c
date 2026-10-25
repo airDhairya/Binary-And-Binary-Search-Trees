@@ -91,6 +91,16 @@ int countTwoChildren(struct Node *n) {
                    + countTwoChildren(n->right);
 }
 
+// Alternative: Return the absolute difference between subtree node counts
+int absoluteSubtreeDifference(struct Node *n) {
+    if (n == NULL)
+        return 0;
+
+    int diff = countNodes(n->left) - countNodes(n->right);
+
+    return diff < 0 ? -diff : diff;
+}
+
 
 // Q7. Write a function to calculate the sum of all nodes
 int sumNodes(struct Node *n) {
@@ -130,6 +140,61 @@ int maximumBT(struct Node *n) {
     if (b > m) m = b;
 
     return m;
+}
+
+// Q9A. Find the second smallest distinct element in a Binary Tree
+void secondSmallestBTUtil(struct Node *n, int *smallest, int *second) {
+    if (n == NULL)
+        return;
+
+    if (n->data < *smallest) {
+        *second = *smallest;
+        *smallest = n->data;
+    }
+    else if (n->data > *smallest && n->data < *second) {
+        *second = n->data;
+    }
+
+    secondSmallestBTUtil(n->left, smallest, second);
+    secondSmallestBTUtil(n->right, smallest, second);
+}
+
+
+// Q9A continued. Returns INT_MAX if no second distinct element exists
+int secondSmallestBT(struct Node *n) {
+    int smallest = INT_MAX, second = INT_MAX;
+
+    secondSmallestBTUtil(n, &smallest, &second);
+
+    return second;
+}
+
+
+// Q9B. Find the second largest distinct element in a Binary Tree
+void secondLargestBTUtil(struct Node *n, int *largest, int *second) {
+    if (n == NULL)
+        return;
+
+    if (n->data > *largest) {
+        *second = *largest;
+        *largest = n->data;
+    }
+    else if (n->data < *largest && n->data > *second) {
+        *second = n->data;
+    }
+
+    secondLargestBTUtil(n->left, largest, second);
+    secondLargestBTUtil(n->right, largest, second);
+}
+
+
+// Q9B continued. Returns INT_MIN if no second distinct element exists
+int secondLargestBT(struct Node *n) {
+    int largest = INT_MIN, second = INT_MIN;
+
+    secondLargestBTUtil(n, &largest, &second);
+
+    return second;
 }
 
 
@@ -680,6 +745,41 @@ struct Node *deleteOneChildNode(struct Node *n, int key) {
     return n;
 }
 
+// Q37A. Delete a node having a left child but no right child
+struct Node *deleteLeftOnlyNode(struct Node *n, int key) {
+    if (n == NULL)
+        return NULL;
+
+    if (key < n->data)
+        n->left = deleteLeftOnlyNode(n->left, key);
+    else if (key > n->data)
+        n->right = deleteLeftOnlyNode(n->right, key);
+    else if (n->left != NULL && n->right == NULL) {
+        struct Node *temp = n->left;
+        free(n);
+        return temp;
+    }
+
+    return n;
+}
+
+// Q37B. Delete a node having a right child but no left child
+struct Node *deleteRightOnlyNode(struct Node *n, int key) {
+    if (n == NULL)
+        return NULL;
+
+    if (key < n->data)
+        n->left = deleteRightOnlyNode(n->left, key);
+    else if (key > n->data)
+        n->right = deleteRightOnlyNode(n->right, key);
+    else if (n->left == NULL && n->right != NULL) {
+        struct Node *temp = n->right;
+        free(n);
+        return temp;
+    }
+
+    return n;
+}
 
 // Q38. Write a function to delete a node having exactly two children
 // This only deletes the target if it has two children
@@ -1067,6 +1167,32 @@ int main(void) {
     inorder(root);
 
     printf("\n");
+
+    // Test Q9A: Second smallest distinct element
+printf("\nSecond smallest: ");
+int secondSmall = secondSmallestBT(root);
+if (secondSmall == INT_MAX)
+    printf("Does not exist");
+else
+    printf("%d", secondSmall);
+
+// Test Q9B: Second largest distinct element
+printf("\nSecond largest: ");
+int secondLarge = secondLargestBT(root);
+if (secondLarge == INT_MIN)
+    printf("Does not exist");
+else
+    printf("%d", secondLarge);
+
+// Test Q6A: Difference between left and right subtree node counts
+printf("\nSubtree node difference: %d",
+       subtreeNodeDifference(root));
+
+// Delete node 30 only if it has a left child and no right child
+root = deleteLeftOnlyNode(root, 30);
+
+// Delete node 70 only if it has a right child and no left child
+root = deleteRightOnlyNode(root, 70);
 
     return 0;
 }
